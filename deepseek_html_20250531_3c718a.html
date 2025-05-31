@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幸运大转盘</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 0 auto 30px;
+        }
+        
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.2, 0.8, 0.3, 1);
+            box-shadow: 0 0 0 10px #ffcc00, 0 0 30px rgba(0,0,0,0.2);
+            background: #fff;
+        }
+        
+        .section {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: bottom right;
+            left: 0;
+            top: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 40px;
+            font-weight: bold;
+            font-size: 16px;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .section span {
+            transform: rotate(45deg);
+            width: 100px;
+            text-align: center;
+        }
+        
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 60px;
+            z-index: 10;
+        }
+        
+        .pointer:before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid #ff3333;
+        }
+        
+        .pointer:after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: #ff3333;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        
+        .spin-btn {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .spin-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 65, 108, 0.6);
+        }
+        
+        .spin-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .spin-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .prize-list {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .prize-item {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .prize-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            font-size: 1.2rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .result.win {
+            background: #d4edda;
+            color: #155724;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        .footer {
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 500px) {
+            .wheel-container {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .section {
+                font-size: 12px;
+                padding-top: 30px;
+            }
+            
+            .prize-list {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎡 幸运大转盘 🎡</h1>
+        <p class="subtitle">点击旋转按钮，测试你的好运气！</p>
+        
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <div class="wheel" id="wheel"></div>
+        </div>
+        
+        <button class="spin-btn" id="spinBtn">开始旋转</button>
+        
+        <div class="result" id="result">等待抽奖...</div>
+        
+        <div class="prize-list">
+            <div class="prize-item">
+                <div class="prize-color" style="background-color: #FF6B6B;"></div>
+                <span>一等奖</span>
+            </div>
+            <div class="prize-item">
+                <div class="prize-color" style="background-color: #4ECDC4;"></div>
+                <span>二等奖</span>
+            </div>
+            <div class="prize-item">
+                <div class="prize-color" style="background-color: #FFD166;"></div>
+                <span>三等奖</span>
+            </div>
+            <div class="prize-item">
+                <div class="prize-color" style="background-color: #06D6A0;"></div>
+                <span>四等奖</span>
+            </div>
+            <div class="prize-item">
+                <div class="prize-color" style="background-color: #118AB2;"></div>
+                <span>五等奖</span>
+            </div>
+            <div class="prize-item">
+                <div class="prize-color" style="background-color: #073B4C;"></div>
+                <span>六等奖</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            温馨提示：每个奖项仅限一次机会，祝您好运！
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const wheel = document.getElementById('wheel');
+            const spinBtn = document.getElementById('spinBtn');
+            const result = document.getElementById('result');
+            
+            // 奖项配置
+            const prizes = [
+                { name: "一等奖", color: "#FF6B6B", angle: 60 },
+                { name: "二等奖", color: "#4ECDC4", angle: 60 },
+                { name: "三等奖", color: "#FFD166", angle: 60 },
+                { name: "四等奖", color: "#06D6A0", angle: 60 },
+                { name: "五等奖", color: "#118AB2", angle: 60 },
+                { name: "六等奖", color: "#073B4C", angle: 60 }
+            ];
+            
+            // 创建转盘扇区
+            let startAngle = 0;
+            prizes.forEach(prize => {
+                const section = document.createElement('div');
+                section.className = 'section';
+                section.style.backgroundColor = prize.color;
+                section.style.transform = `rotate(${startAngle}deg)`;
+                
+                const span = document.createElement('span');
+                span.textContent = prize.name;
+                section.appendChild(span);
+                
+                wheel.appendChild(section);
+                startAngle += prize.angle;
+            });
+            
+            // 当前旋转角度
+            let currentRotation = 0;
+            let isSpinning = false;
+            
+            // 旋转转盘
+            spinBtn.addEventListener('click', () => {
+                if (isSpinning) return;
+                
+                isSpinning = true;
+                spinBtn.disabled = true;
+                result.textContent = "旋转中...";
+                result.className = "result";
+                
+                // 随机旋转角度（至少5圈）
+                const minRotation = 1800; // 5圈
+                const maxRotation = 2160; // 6圈
+                const extraRotation = Math.floor(Math.random() * 360);
+                const totalRotation = minRotation + extraRotation;
+                
+                // 应用旋转
+                wheel.style.transform = `rotate(${currentRotation + totalRotation}deg)`;
+                currentRotation += totalRotation;
+                
+                // 计算中奖结果
+                const normalizedRotation = currentRotation % 360;
+                const winningAngle = (360 - normalizedRotation) % 360;
+                
+                // 模拟旋转过程（3.5秒后显示结果）
+                setTimeout(() => {
+                    let prizeIndex = 0;
+                    let cumulativeAngle = 0;
+                    
+                    for (let i = 0; i < prizes.length; i++) {
+                        cumulativeAngle += prizes[i].angle;
+                        if (winningAngle < cumulativeAngle) {
+                            prizeIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    const wonPrize = prizes[prizeIndex];
+                    result.textContent = `恭喜您获得: ${wonPrize.name} 🎉`;
+                    result.className = "result win";
+                    
+                    // 恢复按钮状态
+                    setTimeout(() => {
+                        isSpinning = false;
+                        spinBtn.disabled = false;
+                    }, 1000);
+                    
+                }, 3500);
+            });
+        });
+    </script>
+</body>
+</html>
